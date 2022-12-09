@@ -1,0 +1,64 @@
+import numpy as np 
+import pandas as pd
+
+
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+data=pd.read_csv("D:\WineQT.csv")
+data.head(20)
+data.info()
+data.shape
+data.describe()
+for column_name in data.columns:
+    unique_values = len(data[column_name].unique())
+    print("Feature '{column_name}' has '{unique_values}' unique values".format(column_name = column_name,
+                                                                                         unique_values=unique_values))
+data = data.drop(['Id'], axis = 1)
+df = data.copy()
+fig,ax=plt.subplots(6,2,figsize=(15,30))
+sns.countplot(x=df.quality,ax=ax[0][0]).set_title('Target Count',size=15)
+sns.boxplot(x=df.quality,y=df['fixed acidity'],ax=ax[0][1])
+sns.boxplot(x=df.quality,y=df['citric acid'],ax=ax[1][0])
+sns.boxplot(x=df.quality,y=df['residual sugar'],ax=ax[1][1])
+sns.boxplot(x=df.quality,y=df['chlorides'],ax=ax[2][0])
+sns.boxplot(x=df.quality,y=df['free sulfur dioxide'],ax=ax[2][1])
+sns.boxplot(x=df.quality,y=df['total sulfur dioxide'],ax=ax[3][0])
+sns.boxplot(x=df.quality,y=df['density'],ax=ax[3][1])
+sns.boxplot(x=df.quality,y=df['pH'],ax=ax[4][0])
+sns.boxplot(x=df.quality,y=df['sulphates'],ax=ax[4][1])
+sns.boxplot(x=df.quality,y=df['alcohol'],ax=ax[5][0])
+sns.boxplot(x=df.quality,y=df['volatile acidity'],ax=ax[5][1])
+columns=data.columns
+sns.set()
+sns.pairplot(data[columns],height = 5 ,kind ='scatter',diag_kind='kde')
+plt.show()
+data.info()
+corr = data.corr()
+plt.figure(figsize=(15, 10))
+sns.heatmap(corr, annot=True, cmap="YlGnBu", linewidths=0.1, annot_kws={"fontsize":20})
+plt.title("Correlation of Features")
+X = data.drop(['quality'], axis = 1)
+y = data['quality']
+
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+data_scaled = scaler.fit_transform(X)
+df = pd.DataFrame(data_scaled, columns=X.columns)
+df
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3,random_state=42)
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier(metric='euclidean', n_neighbors=15, weights='distance')
+knn.fit(X_train, y_train)
+y_train_pred = knn.predict(X_train)
+y_test_pred = knn.predict(X_test)
+print('Misclassified: %d' %(y_train!=y_train_pred).sum())
+print('Misclassified: %d' %(y_test!=y_test_pred).sum())
+from sklearn.metrics import accuracy_score
+accuracy_score(y_test, y_test_pred)
+from sklearn.metrics import confusion_matrix
+confusion_matrix(y_test, y_test_pred)
+from sklearn.metrics import plot_confusion_matrix
+plot_confusion_matrix(knn, X_test, y_test)
+plt.title('Confusion Matrix')
